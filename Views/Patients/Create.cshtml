@@ -1,0 +1,85 @@
+﻿@model Records_Master.Models.Patient
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Patient</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="City" class="control-label"></label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Region" class="control-label"></label>
+                <select asp-for="Region" class="form-control" asp-items="ViewBag.RegionOptions">
+                    <option value="">-- Select a region --</option>
+                </select>
+                <span asp-validation-for="Region" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RegNumber" class="control-label"></label>
+                <input asp-for="RegNumber" class="form-control" />
+                <span asp-validation-for="RegNumber" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                @foreach(var status in(IEnumerable<SelectListItem>)ViewBag.StatusOptions)
+                {
+                    <div class="form-group">
+                        <input asp-for="Status" type="radio" class="form-check-input" value="@status.Value" id="@status.Value" />
+                        <label class="form-check-label" for="@status.Value">@status.Text</label>
+                    </div>
+                }
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Gender" class="control-label"></label>
+                @foreach (var gender in (IEnumerable<SelectListItem>)ViewBag.GenderOptions)
+                {
+                    <div class="form-group">
+                        <input asp-for="Gender" type="radio" class="form-check-input" value="@gender.Value" id="@gender.Value" />
+                        <label class="form-check-label" for="@gender.Value">@gender.Text</label>
+                    </div>
+                }
+                <span asp-validation-for="Gender" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-outline-secondary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

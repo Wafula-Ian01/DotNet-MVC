@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Records Master", "Records Master.csproj", "{6E2A6DB0-BD63-454E-BF55-6ABA345D5306}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6E2A6DB0-BD63-454E-BF55-6ABA345D5306}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E2A6DB0-BD63-454E-BF55-6ABA345D5306}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E2A6DB0-BD63-454E-BF55-6ABA345D5306}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E2A6DB0-BD63-454E-BF55-6ABA345D5306}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A5ABE289-CE39-44A9-8E64-B8EAC0C2B6FD}
+	EndGlobalSection
+EndGlobal

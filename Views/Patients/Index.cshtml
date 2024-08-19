@@ -1,0 +1,90 @@
+﻿@model IEnumerable<Records_Master.Models.Patient>
+@using PagedList.Mvc;
+<link href="~/Content/pagedList.css" rel="stylesheet" type="text/css"/>
+
+@{
+   ViewBag.Title = "Patients";
+}
+
+<h1>Patients</h1>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+@using (Html.BeginForm("Index", "Patients", FormMethod.Get))
+{
+    <p>
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Search" />
+        <a asp-action="Index">Return to Full List</a>
+    </p>
+}
+    
+<table class="table-striped">
+    <thead>
+        <tr>
+            <th>
+                @Html.ActionLink("Name", "Index", new{sortOrder= ViewBag.NameSortParam, currentFilter= ViewBag.CurrentFilter})
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PhoneNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.City)
+            </th>
+            <th>
+                @Html.ActionLink("Region", "Index", new { sortOrder = ViewBag.RegionSortParam, currentFilter = ViewBag.CurrentFilter })
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RegNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Gender)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.LastName)
+            </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstName)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PhoneNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.City)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Region)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RegNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Gender)
+                </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<br />

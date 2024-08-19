@@ -1,0 +1,72 @@
+﻿@model Dictionary<string, List<Records_Master.Models.Patient>>
+
+@{
+    ViewData["Title"] = "Patients by region";
+}
+
+<h1>Patients By Region</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+@foreach(var patientGroup in Model)
+{
+    <h2 class="alert-secondary">@patientGroup.Key</h2>
+    <table class="table-striped">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().LastName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().FirstName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().PhoneNumber)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().City)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().RegNumber)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().Status)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Value.First().Gender)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in patientGroup.Value)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FirstName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PhoneNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.City)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.RegNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Gender)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br/>
+}
+<a href="@Url.Action("ExportToPdf", "Export")" class="btn btn-outline-secondary">Export to PDF</a>
