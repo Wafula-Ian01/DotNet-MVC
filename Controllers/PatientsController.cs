@@ -3,18 +3,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Records_Master.Data;
 using Records_Master.Models;
-
+using DinkToPdf;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 
 namespace Records_Master.Controllers
 {
     [Authorize]
     public class PatientsController : Controller
     {
+        private readonly ICompositeViewEngine _viewEngine;
+        private readonly ITempDataProvider _tempDataProvider;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ApplicationDbContext _context;
 
-        public PatientsController(ApplicationDbContext context)
+        public PatientsController(ApplicationDbContext context, ICompositeViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider)
         {
             _context = context;
+            _viewEngine = viewEngine;
+            _tempDataProvider = tempDataProvider;
+            _serviceProvider = serviceProvider;
         }
 
         //Model data
@@ -86,7 +96,7 @@ namespace Records_Master.Controllers
         }
 
         //GET: By Region
-        public async Task<IActionResult> ByRegion()
+        public IActionResult ByRegion()
         {
             var patient = _context.Patient.ToList();
             var patientGroup= patient
@@ -221,5 +231,50 @@ namespace Records_Master.Controllers
             return _context.Patient.Any(e => e.Id == id);
         }
 
+            public IActionResult GeneratePdf()
+            {
+                var model= _context.Patient.ToList();
+                var htmlView= RenderViewToStringAsync("ByRegion", model).Result;
+
+                var converter = new BasicConverter(new PdfTools());
+                var doc = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = { PaperSize = PaperKind.A4 },
+                    Objects = { new ObjectSettings { HtmlContent = htmlView } }
+                };
+
+                byte[] pdf = converter.Convert(doc);
+                return File(pdf, "application/pdf", "Report.pdf");
+            }
+
+            //PDF Generator Helper method
+            private async Task<string> RenderViewToStringAsync(string ByRegion, object model)
+            {
+                var httpContext= new DefaultHttpContext{RequestServices=_serviceProvider};
+                var actionContext= new ActionContext(httpContext, new RouteData(), new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor());
+
+                using (var sw= new StringWriter())
+                {
+                    var viewResult= _viewEngine.GetView(executingFilePath: null, viewPath: ByRegion, isMainPage: true);
+
+                    if (!viewResult.Success)
+                        throw new ArgumentNullException($"{ByRegion} does not match any available view.");
+
+                    var view= viewResult.View;
+
+                    var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
+                    {
+                        Model = model
+                    };
+
+                    var viewContext = new ViewContext(actionContext, view, viewDictionary, new TempDataDictionary(actionContext.HttpContext, _tempDataProvider), sw, new HtmlHelperOptions());
+
+                    await view.RenderAsync(viewContext);
+                    return sw.ToString();
+
+                }
+            }
+
     }
+
 }
