@@ -20,6 +20,11 @@
         <a asp-action="Index">Return to Full List</a>
     </p>
 }
+
+<form method="post" action="@Url.Action("Export", "Home")">
+    <input type="submit" name="exportType" value="Export as PDF" class="btn btn-primary" />
+    <input type="submit" name="exportType" value="Export as Excel" class="btn btn-success" />
+</form>
     
 <table class="table-striped">
     <thead>

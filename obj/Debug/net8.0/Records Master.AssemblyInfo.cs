@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Records Master")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7164ec6519133accfac099441c9caa60ed7eb61b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+833000e4da2e59bbe9552252fa8a24c1bf3e6152")]
 [assembly: System.Reflection.AssemblyProductAttribute("Records Master")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Records Master")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

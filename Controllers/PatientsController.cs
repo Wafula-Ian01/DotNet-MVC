@@ -3,29 +3,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Records_Master.Data;
 using Records_Master.Models;
-using DinkToPdf;
+using IronPdf;
+using OfficeOpenXml;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using System.Data;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.Headers;
+using IronSoftware.Exceptions;
 
 namespace Records_Master.Controllers
 {
     [Authorize]
-    public class PatientsController : Controller
+    public class PatientsController(ApplicationDbContext context, ICompositeViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor) : Controller
     {
-        private readonly ICompositeViewEngine _viewEngine;
-        private readonly ITempDataProvider _tempDataProvider;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ApplicationDbContext _context;
-
-        public PatientsController(ApplicationDbContext context, ICompositeViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider)
-        {
-            _context = context;
-            _viewEngine = viewEngine;
-            _tempDataProvider = tempDataProvider;
-            _serviceProvider = serviceProvider;
-        }
+        private readonly ICompositeViewEngine _viewEngine = viewEngine;
+        private readonly ITempDataProvider _tempDataProvider = tempDataProvider;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly ApplicationDbContext _context = context;
+        private readonly IHttpContextAccessor _httpContextAccesor;
 
         //Model data
         private IEnumerable<Patient> GetPatientsData()
@@ -231,50 +229,51 @@ namespace Records_Master.Controllers
             return _context.Patient.Any(e => e.Id == id);
         }
 
-            public IActionResult GeneratePdf()
+        public IActionResult GeneratePdf()
+        {
+            try
             {
-                var model= _context.Patient.ToList();
-                var htmlView= RenderViewToStringAsync("ByRegion", model).Result;
+                var httpClient= new HttpClient();
+                var request= new HttpRequestMessage(HttpMethod.Get, Url.Action("ByRegion", "Patients", null, Request.Scheme));
 
-                var converter = new BasicConverter(new PdfTools());
-                var doc = new HtmlToPdfDocument()
+                //Copying curent request cookies to new session.
+                if(_httpContextAccesor.HttpContext.Request.Cookies.Count>0)
                 {
-                    GlobalSettings = { PaperSize = PaperKind.A4 },
-                    Objects = { new ObjectSettings { HtmlContent = htmlView } }
-                };
-
-                byte[] pdf = converter.Convert(doc);
-                return File(pdf, "application/pdf", "Report.pdf");
-            }
-
-            //PDF Generator Helper method
-            private async Task<string> RenderViewToStringAsync(string ByRegion, object model)
-            {
-                var httpContext= new DefaultHttpContext{RequestServices=_serviceProvider};
-                var actionContext= new ActionContext(httpContext, new RouteData(), new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor());
-
-                using (var sw= new StringWriter())
-                {
-                    var viewResult= _viewEngine.GetView(executingFilePath: null, viewPath: ByRegion, isMainPage: true);
-
-                    if (!viewResult.Success)
-                        throw new ArgumentNullException($"{ByRegion} does not match any available view.");
-
-                    var view= viewResult.View;
-
-                    var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
+                    foreach(var cookie in _httpContextAccesor.HttpContext.Request.Cookies)
                     {
-                        Model = model
-                    };
-
-                    var viewContext = new ViewContext(actionContext, view, viewDictionary, new TempDataDictionary(actionContext.HttpContext, _tempDataProvider), sw, new HtmlHelperOptions());
-
-                    await view.RenderAsync(viewContext);
-                    return sw.ToString();
+                        request.Headers.Add("Cookie", $"{cookie.Key}:{cookie.Value}");
+                    }
 
                 }
+
+                var patients= GetPatientsData();
+
+                ChromePdfRenderer renderer= new ChromePdfRenderer();
+
+                PdfDocument pdf= renderer.RenderUrlAsPdf(Url.Action("ByRegion", "Patients", null, Request.Scheme));
+
+                // Save PDF to file
+                //Here Endeavour to use the path to where you want your pdf file stored.
+                var filePath=("/home/ian-elmer/NEW Projects/Records Master/Docs/patients.pdf");
+
+                pdf.SaveAs(filePath);
+
+                return File(pdf.BinaryData, "application/pdf", "patients.pdf");
+
             }
 
+            catch(LicensingException ex)
+                {
+                    return StatusCode(500, $"Licensing Error: {ex.Message}");
+                }
+
+                catch(Exception ex)
+                {
+                    return StatusCode(500, $"An Error Occured: {ex.Message}");
+                }
+        }
+
+        
     }
 
 }
