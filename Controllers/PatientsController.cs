@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Records_Master.Data;
 using Records_Master.Models;
 using IronPdf;
+using EPPlus;
 using OfficeOpenXml;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -263,14 +264,48 @@ namespace Records_Master.Controllers
             }
 
             catch(LicensingException ex)
-                {
-                    return StatusCode(500, $"Licensing Error: {ex.Message}");
-                }
+            {
+                return StatusCode(500, $"Licensing Error: {ex.Message}");
+            }
 
-                catch(Exception ex)
+            catch(Exception ex)
+            {
+                return StatusCode(500, $"An Error Occured: {ex.Message}");
+            }
+        }
+
+        //Generate Excel sheet format of report
+        public IActionResult GenerateExcel()
+        {
+            var patients= GetPatientsData();
+
+            using (ExcelPackage package= new ExcelPackage())
+            {
+                ExcelWorksheet sheet= package.Workbook.Worksheets.Add("Report");
+                sheet.Cells["A1"].Value="ID";
+                sheet.Cells["B1"].Value="Last Name";
+                sheet.Cells["C1"].Value="First Name";
+                sheet.Cells["D1"].Value="Phone Number";
+                sheet.Cells["E1"].Value="City";
+                sheet.Cells["F1"].Value="Region";
+                sheet.Cells["G1"].Value="Reg Number";
+                sheet.Cells["H1"].Value="Status";
+                sheet.Cells["I1"].Value="Gender";
+
+                int row= 2;
+                foreach(Patient pat in patients)
                 {
-                    return StatusCode(500, $"An Error Occured: {ex.Message}");
+                    sheet.Cells[string.Format("A{0}", row)].Value=pat.Id;
+                    sheet.Cells[string.Format("B{0}", row)].Value=pat.LastName;
+                    sheet.Cells[string.Format("C{0}", row)].Value=pat.FirstName;
+                    sheet.Cells[string.Format("D{0}", row)].Value=pat.PhoneNumber;
+                    sheet.Cells[string.Format("E{0}", row)].Value= pat.City;
+                    sheet.Cells[string.Format("F{0}", row)].Value= pat.Region;
+                    sheet.Cells[string.Format("G{0}", row)].Value= pat.RegNumber;
+                    sheet.Cells[string.Format("H{0}", row)].Value= pat.Status;
+                    sheet.Cells[string.Format("I{0}", row)].Value= pat.Gender;
                 }
+            }
         }
 
         
