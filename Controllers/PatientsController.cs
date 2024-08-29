@@ -305,6 +305,13 @@ namespace Records_Master.Controllers
                     sheet.Cells[string.Format("H{0}", row)].Value= pat.Status;
                     sheet.Cells[string.Format("I{0}", row)].Value= pat.Gender;
                 }
+
+                sheet.Cells["A:AZ"].AutoFitColumns();
+                var fileContents= package.GetAsByteArray();
+                var filePath= Path.Combine("/home/ian-elmer/NEW Projects/Records Master/Docs/patients.xlsx");
+                var fileName= "patients.xlsx";
+
+                return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheet.sheet", fileName);
             }
         }
 
