@@ -69,4 +69,7 @@
     </table>
     <br/>
 }
-<a href="@Url.Action("ExportToPdf", "Export")" class="btn btn-outline-secondary">Export to PDF</a>
+
+<form asp-action="GeneratePdf" method="post">
+    <input type="submit" value="Generate PDF"/>
+</form>

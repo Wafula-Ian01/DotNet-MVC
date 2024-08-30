@@ -3,19 +3,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Records_Master.Data;
 using Records_Master.Models;
-
+using IronPdf;
+using EPPlus;
+using OfficeOpenXml;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using System.Data;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.Headers;
+using IronSoftware.Exceptions;
 
 namespace Records_Master.Controllers
 {
     [Authorize]
-    public class PatientsController : Controller
+    public class PatientsController(ApplicationDbContext context, ICompositeViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider, IHttpContextAccessor httpContextAccessor) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public PatientsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ICompositeViewEngine _viewEngine = viewEngine;
+        private readonly ITempDataProvider _tempDataProvider = tempDataProvider;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly ApplicationDbContext _context = context;
+        private readonly IHttpContextAccessor _httpContextAccesor;
 
         //Model data
         private IEnumerable<Patient> GetPatientsData()
@@ -86,7 +95,7 @@ namespace Records_Master.Controllers
         }
 
         //GET: By Region
-        public async Task<IActionResult> ByRegion()
+        public IActionResult ByRegion()
         {
             var patient = _context.Patient.ToList();
             var patientGroup= patient
@@ -221,5 +230,92 @@ namespace Records_Master.Controllers
             return _context.Patient.Any(e => e.Id == id);
         }
 
+        public IActionResult GeneratePdf()
+        {
+            try
+            {
+                var httpClient= new HttpClient();
+                var request= new HttpRequestMessage(HttpMethod.Get, Url.Action("ByRegion", "Patients", null, Request.Scheme));
+
+                //Copying curent request cookies to new session.
+                if(_httpContextAccesor.HttpContext.Request.Cookies.Count>0)
+                {
+                    foreach(var cookie in _httpContextAccesor.HttpContext.Request.Cookies)
+                    {
+                        request.Headers.Add("Cookie", $"{cookie.Key}:{cookie.Value}");
+                    }
+
+                }
+
+                var patients= GetPatientsData();
+
+                ChromePdfRenderer renderer= new ChromePdfRenderer();
+
+                PdfDocument pdf= renderer.RenderUrlAsPdf(Url.Action("ByRegion", "Patients", null, Request.Scheme));
+
+                // Save PDF to file
+                //Here Endeavour to use the path to where you want your pdf file stored.
+                var filePath=("/home/ian-elmer/NEW Projects/Records Master/Docs/patients.pdf");
+
+                pdf.SaveAs(filePath);
+
+                return File(pdf.BinaryData, "application/pdf", "patients.pdf");
+
+            }
+
+            catch(LicensingException ex)
+            {
+                return StatusCode(500, $"Licensing Error: {ex.Message}");
+            }
+
+            catch(Exception ex)
+            {
+                return StatusCode(500, $"An Error Occured: {ex.Message}");
+            }
+        }
+
+        //Generate Excel sheet format of report
+        public IActionResult GenerateExcel()
+        {
+            var patients= GetPatientsData();
+
+            using (ExcelPackage package= new ExcelPackage())
+            {
+                ExcelWorksheet sheet= package.Workbook.Worksheets.Add("Report");
+                sheet.Cells["A1"].Value="ID";
+                sheet.Cells["B1"].Value="Last Name";
+                sheet.Cells["C1"].Value="First Name";
+                sheet.Cells["D1"].Value="Phone Number";
+                sheet.Cells["E1"].Value="City";
+                sheet.Cells["F1"].Value="Region";
+                sheet.Cells["G1"].Value="Reg Number";
+                sheet.Cells["H1"].Value="Status";
+                sheet.Cells["I1"].Value="Gender";
+
+                int row= 2;
+                foreach(Patient pat in patients)
+                {
+                    sheet.Cells[string.Format("A{0}", row)].Value=pat.Id;
+                    sheet.Cells[string.Format("B{0}", row)].Value=pat.LastName;
+                    sheet.Cells[string.Format("C{0}", row)].Value=pat.FirstName;
+                    sheet.Cells[string.Format("D{0}", row)].Value=pat.PhoneNumber;
+                    sheet.Cells[string.Format("E{0}", row)].Value= pat.City;
+                    sheet.Cells[string.Format("F{0}", row)].Value= pat.Region;
+                    sheet.Cells[string.Format("G{0}", row)].Value= pat.RegNumber;
+                    sheet.Cells[string.Format("H{0}", row)].Value= pat.Status;
+                    sheet.Cells[string.Format("I{0}", row)].Value= pat.Gender;
+                }
+
+                sheet.Cells["A:AZ"].AutoFitColumns();
+                var fileContents= package.GetAsByteArray();
+                var filePath= Path.Combine("/home/ian-elmer/NEW Projects/Records Master/Docs/patients.xlsx");
+                var fileName= "patients.xlsx";
+
+                return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheet.sheet", fileName);
+            }
+        }
+
+        
     }
+
 }

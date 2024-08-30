@@ -1,6 +1,8 @@
+using DinkToPdf;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Records_Master.Data;
+using IronPdf;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddSingleton(typeof(DinkToPdf.Contracts.IConverter), new SynchronizedConverter(new PdfTools()));
+
+//IronPdf License key
+IronPdf.License.LicenseKey="YOU'LL ADD YOUR LICENSE KEY HERE";
 
 /*builder.Services.AddRotativa(Config => configSetTempFilePath(Path.GetTempPath()));
 */
